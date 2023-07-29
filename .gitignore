@@ -2,3 +2,13 @@
 .env
 .vscode
 .venv
+
+file_import/baneco.csv
+file_import/binance.json
+file_import/bisa.csv
+file_import/bnb.xls
+file_import/union.xls
+file_import/ynab.csv
+file_import/zinli.pdf
+file_import/mp.json
+file_import/mp.xls
