@@ -10,7 +10,7 @@ if len(sys.argv) != 2:
 input_file = sys.argv[1]
 output_file = "ynab.csv"
 
-with open(input_file, "r") as csv_file:
+with open(input_file, "r", encoding="latin-1") as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=",")
     next(csv_reader)  # Ignora la primera línea
     next(csv_reader)  # Ignora la segunda línea
@@ -18,6 +18,7 @@ with open(input_file, "r") as csv_file:
     next(csv_reader)  # Ignora la cuarta línea
     next(csv_reader)  # Ignora la quinta línea
     next(csv_reader)  # Ignora la sexta línea
+    next(csv_reader)  # Ignora la septima línea
 
     with open(output_file, "w", newline="") as output:
         csv_writer = csv.writer(output, delimiter=",")
