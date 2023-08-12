@@ -2,6 +2,7 @@
 .env
 .vscode
 .venv
+.files/
 
 file_import/baneco.csv
 file_import/binance.json
