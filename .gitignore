@@ -3,6 +3,7 @@
 .vscode
 .venv
 .files/
+**/**/.DS_Store
 
 file_import/baneco.csv
 file_import/binance.json
