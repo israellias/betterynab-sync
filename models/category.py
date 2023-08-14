@@ -19,7 +19,7 @@ class Category:
         self.id = id
         self.category_group_id = category_group_id
         self.category_group_name = category_group_name
-        self.name = name
+        self.name: str = name
         self.hidden = hidden
         self.note = note
         self.budgeted = budgeted

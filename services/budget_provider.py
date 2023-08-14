@@ -1,7 +1,7 @@
 import datetime
 
 from models import Budget
-from services._ynab_connection import get_budgets, get_categories, get_transactions
+from services._ynab_connection import YNABClient
 
 
 def validate_budget(budget):
@@ -17,28 +17,24 @@ def validate_category(category):
 
 
 def relevant_budgets():
-    budgets = get_budgets()
+    budgets = YNABClient().get_budgets()
     budgets = list(filter(validate_budget, budgets))
 
     for budget in budgets:
-        categories = get_categories(budget.id)
+        categories = YNABClient().get_categories(budget.id)
         categories = list(filter(validate_category, categories))
         budget.assign_categories(categories)
 
     usd_budget = next(budget for budget in budgets if budget.name == "USD Budget")
-
-    return usd_budget, relevant_budgets
+    sync_budgets = [budget for budget in budgets if budget.name != "USD Budget"]
+    return usd_budget, sync_budgets
 
 
 def fill_transactions(budget: Budget):
     two_weeks_ago = datetime.datetime.now() - datetime.timedelta(days=14)
     since_date = two_weeks_ago.strftime("%Y-%m-%d")
 
-    transactions = get_transactions(budget.id, since_date)
+    transactions = YNABClient().get_transactions(budget.id, since_date)
     budget.assign_transactions(transactions)
 
     return budget
-
-
-def sync_transactions_to_main_budget(budget: Budget, main_budget: Budget):
-    pass

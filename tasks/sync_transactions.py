@@ -5,7 +5,7 @@ from services import (
 )
 
 
-def sync_transactions_to_main_budget():
+def sync_transactions():
     """Sync transactions from one budget to another"""
 
     # Get budgets
