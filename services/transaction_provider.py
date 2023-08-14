@@ -7,7 +7,7 @@ from services._ynab_connection import YNABClient, CreateTransactionInterface
 
 def _process_transactions(
     budget: Budget, main_budget: Budget
-) -> list[CreateTransactionInterface]:
+) -> [CreateTransactionInterface]:
     create_transactions = []
 
     def parse_main_transactions(acc, t):
@@ -32,6 +32,7 @@ def _process_transactions(
             for subtransaction in transaction.subtransactions:
                 if (
                     "⚙️" in subtransaction.category_name
+                    or "Transfer :" in (subtransaction.payee_name or "")
                     or subtransaction in main_budget_transactions
                 ):  # calls the __eq__ method for CreateTransactionInterface
                     continue
@@ -42,11 +43,13 @@ def _process_transactions(
                         transaction=transaction,
                         subtransaction=subtransaction,
                         main_budget_categories=main_budget.categories,
+                        main_budget_transactions=main_budget_transactions,
                     )
                 )
         else:
             if (
                 "⚙️" in transaction.category_name
+                or "Transfer :" in (transaction.payee_name or "")
                 or transaction in main_budget_transactions
             ):  # calls the __eq__ method for CreateTransactionInterface
                 continue
@@ -56,6 +59,7 @@ def _process_transactions(
                     budget=budget,
                     transaction=transaction,
                     main_budget_categories=main_budget.categories,
+                    main_budget_transactions=main_budget_transactions,
                 )
             )
 

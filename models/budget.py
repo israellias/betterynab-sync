@@ -30,8 +30,8 @@ class Budget:
         self.name = name
         self.last_modified_on = last_modified_on
         self.currency_format = CurrencyFormat(**currency_format)
-        self.categories: list[Category] = []
-        self.uncategorized_transactions: list[Transaction] = []
+        self.categories: [Category] = []
+        self.uncategorized_transactions: [Transaction] = []
 
     @property
     def transactions(self):

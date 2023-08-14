@@ -31,12 +31,17 @@ class CreateTransactionInterface:
         cls,
         budget: Budget,
         transaction: Transaction,
-        main_budget_categories: list[Category],
+        main_budget_categories: [Category],
+        main_budget_transactions: [Transaction],
     ):
         return cls(
             account_id=cls._account_id(budget),
             date=transaction.date,
-            amount=transaction.amount,
+            amount=cls._amount(
+                budget,
+                main_budget_transactions,
+                transaction,
+            ),
             category_id=cls._category_id(
                 main_budget_categories,
                 transaction.category_name,
@@ -54,12 +59,17 @@ class CreateTransactionInterface:
         budget: Budget,
         transaction: Transaction,
         subtransaction: Subtransaction,
-        main_budget_categories: list[Category],
+        main_budget_categories: [Category],
+        main_budget_transactions: [Transaction],
     ):
         return cls(
             account_id=cls._account_id(budget),
             date=transaction.date,
-            amount=subtransaction.amount,
+            amount=cls._amount(
+                budget,
+                main_budget_transactions,
+                subtransaction,
+            ),
             category_id=cls._category_id(
                 main_budget_categories,
                 subtransaction.category_name,
@@ -83,7 +93,7 @@ class CreateTransactionInterface:
         return account_id
 
     @staticmethod
-    def _category_id(main_budget_categories: list[Category], category_name: str):
+    def _category_id(main_budget_categories: [Category], category_name: str):
         for category in main_budget_categories:
             if category.name.strip() == category_name.strip():
                 return category.id
@@ -103,6 +113,36 @@ class CreateTransactionInterface:
         ):
             return None
         return payee_name
+
+    @staticmethod
+    def _amount(
+        budget: Budget,
+        main_budget_transactions: [Transaction],
+        transaction: Transaction | Subtransaction,
+    ):
+        if budget.name == "BOB Budget":
+            account_id = env.get("BOB_BUDGET_ACCOUNT")
+        elif budget.name == "ARS Budget":
+            account_id = env.get("ARS_BUDGET_ACCOUNT")
+        else:
+            account_id = None
+
+        sorted_transactions = sorted(main_budget_transactions, key=lambda t: t.date)
+        last_exchange_rate = next(
+            (
+                t.exchange_rate
+                for t in sorted_transactions
+                if t.account_id == account_id
+                and t.date <= transaction.date
+                and t.amount > 0
+            ),
+            1.0,
+        )
+
+        # Since against USD the relevant info is the local currency,
+        # we need to invert the exchange rate instead of multiplying by it
+        # Since amount in YNAB is expresed multiplied by 1000, we can miss the decimals
+        return int(transaction.amount / last_exchange_rate)
 
     def to_dict(self):
         return {

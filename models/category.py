@@ -26,7 +26,7 @@ class Category:
         self.activity = activity
         self.balance = balance
         self.deleted = deleted
-        self.transactions: list[Transaction] = []
+        self.transactions: [Transaction] = []
 
     def __str__(self) -> str:
         return f"{self.name} ({self.balance})"

@@ -1,3 +1,6 @@
+import re
+
+
 class _BaseTransaction:
     def __init__(
         self,
@@ -32,6 +35,18 @@ class _BaseTransaction:
     @property
     def memo_identifier(self) -> str:
         return self.memo and self.memo.strip()[-13:]
+
+    @property
+    def exchange_rate(self) -> float:
+        """
+        Look for something like
+        memo = "[TC:555.02] some random memo"
+        """
+        if self.memo and "[TC:" in self.memo:
+            match = re.search(r"\[TC:(\d+(?:\.\d+)?)\]", self.memo)
+            if match:
+                return float(match.group(1))
+        return 1.0
 
     def __eq__(self, _value: object) -> bool:
         if not issubclass(_value.__class__, _BaseTransaction):
