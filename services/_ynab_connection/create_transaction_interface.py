@@ -127,14 +127,16 @@ class CreateTransactionInterface:
         else:
             account_id = None
 
-        sorted_transactions = sorted(main_budget_transactions, key=lambda t: t.date)
+        sorted_transactions = sorted(
+            main_budget_transactions, key=lambda t: t.date, reverse=True
+        )
         last_exchange_rate = next(
             (
                 t.exchange_rate
                 for t in sorted_transactions
                 if t.account_id == account_id
                 and t.date <= transaction.date
-                and t.amount > 0
+                and t.exchange_rate is not None
             ),
             1.0,
         )

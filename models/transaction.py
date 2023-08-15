@@ -46,7 +46,7 @@ class _BaseTransaction:
             match = re.search(r"\[TC:(\d+(?:\.\d+)?)\]", self.memo)
             if match:
                 return float(match.group(1))
-        return 1.0
+        return None
 
     def __eq__(self, _value: object) -> bool:
         if not issubclass(_value.__class__, _BaseTransaction):
