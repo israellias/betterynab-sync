@@ -31,8 +31,8 @@ def relevant_budgets():
 
 
 def fill_transactions(budget: Budget):
-    two_weeks_ago = datetime.datetime.now() - datetime.timedelta(days=14)
-    since_date = two_weeks_ago.strftime("%Y-%m-%d")
+    days_ago = datetime.datetime.now() - datetime.timedelta(days=60)
+    since_date = days_ago.strftime("%Y-%m-%d")
 
     transactions = YNABClient().get_transactions(budget.id, since_date)
     budget.assign_transactions(transactions)

@@ -3,11 +3,14 @@ import sys
 import json
 from datetime import datetime
 from pytz import timezone
+import json
+import csv
+from datetime import datetime
 
 
 def remove_prefix(text, prefix):
     if text.startswith(prefix):
-        return text[len(prefix):]
+        return text[len(prefix) :]
     return text
 
 
@@ -18,33 +21,23 @@ if len(sys.argv) < 2:
 input_filename = sys.argv[1]
 
 # Read the JSON file
-with open(input_filename, 'r') as file:
+with open(input_filename, "r") as file:
     data = json.load(file)
 
-# Extract the required fields from JSON
-records = []
-for result in data['results']:
-    date_str = result['creationDate']
-    date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-    date = timezone('UTC').localize(date)
-    date = date.astimezone(timezone('America/Argentina/Buenos_Aires')).strftime('%Y-%m-%d')
 
-    amount = result['amount']['fraction'].replace('.', '')
-    description = result['description']
-    description = remove_prefix(description, 'a ')
-    description = remove_prefix(description, 'de ')
+# Create a CSV file and write the header
+with open("ynab.csv", "w", newline="") as csv_file:
+    csv_writer = csv.writer(csv_file)
+    csv_writer.writerow(["Date", "Amount", "Payee"])
 
-    records.append({
-        'Date': date,
-        'Amount': amount,
-        'Payee': description
-    })
+    # Loop through the binnacles and movements
+    for bin in data["result"]["binnacles"]:
+        for movement in bin["movements"]:
+            date_str = movement["ledger_datetime"][:10]
+            date = datetime.strptime(date_str, "%Y-%m-%d").strftime("%Y-%m-%d")
+            amount = movement["amount"]["fraction"].replace(".", "")
+            payee = movement["description"] or movement["metadata"]["description"]
 
-# Create DataFrame from the records
-df = pd.DataFrame(records)
+            csv_writer.writerow([date, amount, payee])
 
-# Export the DataFrame to a CSV file
-output_filename = 'ynab.csv'
-df.to_csv(output_filename, index=False)
-
-print(f"CSV file '{output_filename}' has been created successfully.")
+print(f"CSV file ynab.csv has been created successfully.")
