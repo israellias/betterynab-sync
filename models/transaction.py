@@ -6,6 +6,7 @@ class _BaseTransaction:
         self,
         id,
         date,
+        account_id,
         amount,
         memo,
         payee_id,
@@ -16,6 +17,7 @@ class _BaseTransaction:
     ):
         self.id = id
         self.date = date
+        self.account_id = account_id
         self.amount = amount
         self.memo = memo
         self.payee_id = payee_id
@@ -68,7 +70,6 @@ class Transaction(_BaseTransaction):
         cleared,
         approved,
         flag_color,
-        account_id,
         account_name,
         transfer_account_id,
         transfer_transaction_id,
@@ -81,7 +82,6 @@ class Transaction(_BaseTransaction):
         self.cleared = cleared
         self.approved = approved
         self.flag_color = flag_color
-        self.account_id = account_id
         self.account_name = account_name
         self.transfer_account_id = transfer_account_id
         self.transfer_transaction_id = transfer_transaction_id
@@ -90,7 +90,7 @@ class Transaction(_BaseTransaction):
         self.subtransactions = [
             subtransaction
             if isinstance(subtransaction, Subtransaction)
-            else Subtransaction(**subtransaction, date=self.date)
+            else Subtransaction(**subtransaction, account_id=kwargs.get('account_id'), date=self.date)
             for subtransaction in subtransactions
         ]
 

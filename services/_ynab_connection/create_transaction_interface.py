@@ -127,18 +127,21 @@ class CreateTransactionInterface:
         else:
             account_id = None
 
+        previous_transactions = [
+            t
+            for t in main_budget_transactions
+            if t.date <= transaction.date
+            and t.exchange_rate is not None
+            and t.account_id == account_id
+        ]
         sorted_transactions = sorted(
-            main_budget_transactions, key=lambda t: t.date, reverse=True
+            previous_transactions,
+            key=lambda t: (t.date, -t.exchange_rate),
+            reverse=True,
         )
-        last_exchange_rate = next(
-            (
-                t.exchange_rate
-                for t in sorted_transactions
-                if t.account_id == account_id
-                and t.date <= transaction.date
-                and t.exchange_rate is not None
-            ),
-            1.0,
+
+        last_exchange_rate = (
+            sorted_transactions[0].exchange_rate if sorted_transactions else 1.0
         )
 
         # Since against USD the relevant info is the local currency,

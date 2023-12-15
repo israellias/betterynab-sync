@@ -1,6 +1,7 @@
 **/__pycache__
 .env
 .vscode
+.idea
 .venv
 .files/
 **/**/.DS_Store
