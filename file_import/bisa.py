@@ -36,6 +36,13 @@ with open(input_file, "r", encoding="latin-1") as csv_file:
             else:
                 inflow = float(inflow)
                 outflow = ""
-            csv_writer.writerow([date, "", "", memo, outflow, inflow])
+            if "ITF" in memo:
+                payee = "Banca"
+            elif "Retiro" in memo:
+                payee = "Transfer : Wallet ISR"
+            else:
+                payee = ""
+
+            csv_writer.writerow([date, payee, "", memo, outflow, inflow])
 
 print(f"El archivo {output_file} ha sido creado con éxito.")
