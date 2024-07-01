@@ -12,13 +12,11 @@ output_file = "ynab.csv"
 
 with open(input_file, "r", encoding="latin-1") as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=",")
-    next(csv_reader)  # Ignora la primera línea
-    next(csv_reader)  # Ignora la segunda línea
-    next(csv_reader)  # Ignora la tercera línea
-    next(csv_reader)  # Ignora la cuarta línea
-    next(csv_reader)  # Ignora la quinta línea
-    next(csv_reader)  # Ignora la sexta línea
-    next(csv_reader)  # Ignora la septima línea
+
+    while True:
+        row = next(csv_reader)
+        if len(row) > 0 and row[0].startswith("Fecha"):
+            break
 
     with open(output_file, "w", newline="") as output:
         csv_writer = csv.writer(output, delimiter=",")

@@ -31,8 +31,8 @@ def round_number(num):
 
 
 # Función para formatear el monto con la cantidad de decimales adecuada según la moneda
-def format_amount(amount, fiat):
-    if fiat in ["USD", "USDT", "BOB"]:
+def format_amount(amount, fiat="USD"):
+    if fiat in ["USD", "USDT", "BOB", "EUR"]:
         return round_number(amount)
     else:
         return int(amount)
@@ -45,24 +45,41 @@ for item in filtered_data:
     amount = Decimal(item["amount"])
     asset = item["asset"]
     total_price = Decimal(item["totalPrice"])
+    price = Decimal(item["price"])
     fiat = item["fiat"]
     username = item["buyerNickname"] if trade_type == "SELL" else item["sellerNickname"]
     create_time = get_formatted_date(item["createTime"])
-    commission = Decimal(item.get("commission", 0))  # Get commission or default to 0
+    commission = Decimal(
+        item.get("commission", 0) or 0
+    )  # Get commission or default to 0
 
     memo = f"{trade_type} {format_amount(amount, fiat)} {asset} with {format_amount(total_price, fiat)} {fiat} ({username})"
 
-    if trade_type == "BUY":
+    if fiat in ("BOB", "EUR", "ARS"):
+        memo = "[TC:%s] %s" % (format_amount(price, fiat), memo)
+
+    if trade_type == "BUY" and fiat == "USD":
         inflow = format_amount(total_price, fiat)
+        outflow = ""
+    elif trade_type == "BUY":
+        inflow = format_amount(amount, fiat)
         outflow = ""
     else:
         inflow = ""
-        outflow = format_amount(amount - commission, fiat)
+        outflow = format_amount(amount - commission)
 
-    payee = "Transfer:Zinli" if trade_type == "BUY" else "Transfer:BOB"
+    if trade_type == "BUY" and fiat == "USD":
+        payee = "Transfer : Zinli"
+    elif trade_type == "SELL" and fiat == "BOB":
+        payee = "Transfer : ⚙️ BOB Budget"
+    elif trade_type == "SELL" and fiat == "ARS":
+        payee = "Transfer : ⚙️ ARS Budget"
+    else:
+        payee = ""
+
     csv_data.append([create_time, payee, outflow, inflow, memo])
 
-    if commission:
+    if asset == 'USDT' and fiat == 'USD' and amount != total_price:
         csv_data.append(
             [
                 create_time,

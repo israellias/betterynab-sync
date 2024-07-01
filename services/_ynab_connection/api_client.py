@@ -1,5 +1,6 @@
-import requests
 from os import environ as env
+
+import requests
 
 from models import Budget, Category, Transaction
 
