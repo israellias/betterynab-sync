@@ -31,9 +31,13 @@ with open(input_file, "r", encoding="latin-1") as csv_file:
                 continue
             date = row[0]
             memo = row[5]
+            original_amount = row[6].replace(",", "").replace("US$ ", "")
             amount = row[7].replace(",", "").replace("Bs ", "")
             if amount != "":
                 amount = float(amount) * -1
+
+            if amount == 0 and original_amount != "":
+                amount = float(original_amount) * 6.97 * -1
             if "CUOTA ANUAL" in memo:
                 payee = "Banca"
             elif "Retiro" in memo:

@@ -1,6 +1,6 @@
 import csv
-import json
 import datetime
+import json
 import sys
 from decimal import Decimal
 
@@ -59,16 +59,6 @@ for item in filtered_data:
         memo = "[TC:%s] %s" % (format_amount(price, fiat), memo)
 
     if trade_type == "BUY" and fiat == "USD":
-        inflow = format_amount(total_price, fiat)
-        outflow = ""
-    elif trade_type == "BUY":
-        inflow = format_amount(amount, fiat)
-        outflow = ""
-    else:
-        inflow = ""
-        outflow = format_amount(amount - commission)
-
-    if trade_type == "BUY" and fiat == "USD":
         payee = "Transfer : Zinli"
     elif trade_type == "SELL" and fiat == "BOB":
         payee = "Transfer : ⚙️ BOB Budget"
@@ -77,19 +67,38 @@ for item in filtered_data:
     else:
         payee = ""
 
+    if trade_type == "BUY" and "Zinli" in payee:
+        inflow = format_amount(total_price, fiat)
+        outflow = ""
+    elif trade_type == "BUY":
+        inflow = format_amount(amount, fiat)
+        outflow = ""
+    elif trade_type == "SELL":
+        inflow = ""
+        outflow = format_amount(amount, fiat)
+
     csv_data.append([create_time, payee, outflow, inflow, memo])
 
-    if asset == 'USDT' and fiat == 'USD' and amount != total_price:
+    if commission != 0:
         csv_data.append(
             [
                 create_time,
-                "Commission to Zinli",
+                "Commissions",
+                format_amount(commission, fiat),
                 "",
-                format_amount(amount - total_price - commission, fiat),
                 f"Commission for {memo}",
             ]
         )
-
+    if "Zinli" in payee:
+        csv_data.append(
+            [
+                create_time,
+                "Commissions",
+                "",
+                format_amount(amount - total_price, fiat),
+                f"Income from exchante rate for {memo}",
+            ]
+        )
 
 # Escribe los datos en un archivo CSV
 csv_file = "ynab.csv"
