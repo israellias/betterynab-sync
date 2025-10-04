@@ -1,6 +1,10 @@
 requests==2.31.0
 python-dotenv==1.0.0
-numpy==1.24.3
-pandas==2.0.1
+numpy
+pandas
 xlrd==2.0.1
 openpyxl
+ynab
+inquirer
+openai
+PyPDF2

@@ -27,6 +27,14 @@ def _process_transactions(
     )
 
     for transaction in budget.transactions:
+        # BISA CC account filter - Skip BISA CC transactions during normal sync
+        # This prevents duplicates since BISA CC is imported directly to USD Budget
+        # UNCOMMENT to sync ONLY BISA CC transactions (for late credit card statements):
+        # if transaction.account_id != "036f91ff-5c0d-4931-8d4f-079f2274e2f2":
+        #     continue
+        # COMMENT OUT when syncing only BISA CC (default behavior - skip BISA CC):
+        if transaction.account_id == "036f91ff-5c0d-4931-8d4f-079f2274e2f2":
+            continue
         # Check if transaction has subtransations
         if transaction.subtransactions:
             for subtransaction in transaction.subtransactions:

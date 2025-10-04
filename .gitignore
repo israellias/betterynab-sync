@@ -15,3 +15,22 @@ file_import/ynab.csv
 file_import/zinli.pdf
 file_import/mp.json
 file_import/mp.xls
+
+# Bank account exports
+file_import/*.pdf
+file_import/*.xlsx
+file_import/*.xls
+file_import/*.csv
+
+# Category sync artifacts
+category_matches.json
+category_sync_report.json
+hidden_categories.json
+skipped_categories.json
+match_with_ai.json
+tasks/ynab_categories.json
+tasks/plan_data.json
+
+# Generated CSV exports
+ynab.csv
+plan.csv

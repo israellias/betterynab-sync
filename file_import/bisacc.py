@@ -31,13 +31,39 @@ with open(input_file, "r", encoding="latin-1") as csv_file:
                 continue
             date = row[0]
             memo = row[5]
-            original_amount = row[6].replace(",", "").replace("US$ ", "")
-            amount = row[7].replace(",", "").replace("Bs ", "")
-            if amount != "":
-                amount = float(amount) * -1
 
-            if amount == 0 and original_amount != "":
-                amount = float(original_amount) * 6.97 * -1
+            # Clean original_amount - handle both US$ and Bs prefixes
+            original_amount = row[6].replace(",", "")
+            original_amount = original_amount.replace("US$ ", "").replace("Bs ", "")
+
+            # Clean amount
+            amount = row[7].replace(",", "").replace("Bs ", "")
+
+            # Process amount if it's not empty
+            if amount and amount != "":
+                try:
+                    amount = float(amount) * -1
+                except ValueError:
+                    print(
+                        f"Error: No se pudo convertir '{row[7]}' a un número. Usando 0 para la transacción: {memo}"
+                    )
+                    amount = 0  # Set to 0 instead of skipping
+
+            # Process original_amount if amount is 0 and original_amount is not empty
+            if (
+                (amount == 0 or not amount)
+                and original_amount
+                and original_amount != ""
+            ):
+                try:
+                    amount = float(original_amount) * 6.97 * -1
+                except ValueError:
+                    print(
+                        f"Error: No se pudo convertir '{row[6]}' a un número. Usando 0 para la transacción: {memo}"
+                    )
+                    amount = 0  # Set to 0 instead of skipping
+
+            # Handle payee based on transaction description
             if "CUOTA ANUAL" in memo:
                 payee = "Banca"
             elif "Retiro" in memo:

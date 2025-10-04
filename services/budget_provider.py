@@ -31,8 +31,12 @@ def relevant_budgets():
 
 
 def fill_transactions(budget: Budget):
-    days_ago = datetime.datetime.now() - datetime.timedelta(days=17)
-    since_date = days_ago.strftime("%Y-%m-%d")
+    # Date from which to sync transactions
+    # NOTE: This is the reconciliation date. When syncing older transactions
+    # for BISA CC only (late credit card statements), temporarily change this
+    # date and uncomment the account filter in transaction_provider.py:30
+    target_date = datetime.datetime(2025, 6, 21)
+    since_date = target_date.strftime("%Y-%m-%d")
 
     transactions = YNABClient().get_transactions(budget.id, since_date)
     budget.assign_transactions(transactions)
