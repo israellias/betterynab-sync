@@ -6,7 +6,7 @@ from services._ynab_connection import YNABClient, CreateTransactionInterface
 
 
 def _process_transactions(
-    budget: Budget, main_budget: Budget
+    budget: Budget, main_budget: Budget, only_credit_card: bool = False
 ) -> [CreateTransactionInterface]:
     create_transactions = []
 
@@ -26,15 +26,18 @@ def _process_transactions(
         parse_main_transactions, main_budget.transactions, []
     )
 
+    BISA_CC_ACCOUNT_ID = "2096c0e6-e608-4373-8346-4414ee53664c"
+
     for transaction in budget.transactions:
-        # BISA CC account filter - Skip BISA CC transactions during normal sync
-        # This prevents duplicates since BISA CC is imported directly to USD Budget
-        # UNCOMMENT to sync ONLY BISA CC transactions (for late credit card statements):
-        # if transaction.account_id != "036f91ff-5c0d-4931-8d4f-079f2274e2f2":
-        #     continue
-        # COMMENT OUT when syncing only BISA CC (default behavior - skip BISA CC):
-        if transaction.account_id == "036f91ff-5c0d-4931-8d4f-079f2274e2f2":
-            continue
+        # BISA CC account filter
+        if only_credit_card:
+            # Sync ONLY BISA CC transactions (for late statements)
+            if transaction.account_id != BISA_CC_ACCOUNT_ID:
+                continue
+        else:
+            # Default: exclude BISA CC (imported directly to USD)
+            if transaction.account_id == BISA_CC_ACCOUNT_ID:
+                continue
         # Check if transaction has subtransations
         if transaction.subtransactions:
             for subtransaction in transaction.subtransactions:
@@ -74,14 +77,22 @@ def _process_transactions(
     return create_transactions
 
 
-def sync_transactions_to_main_budget(budget: Budget, main_budget: Budget):
+def sync_transactions_to_main_budget(
+    budget: Budget, main_budget: Budget, only_credit_card: bool = False
+):
     """
     Check which new transactions needs to be written on the main_budget
+
+    Args:
+        budget: Source budget to sync from
+        main_budget: Destination budget to sync to
+        only_credit_card: If True, sync only BISA CC transactions
     """
 
-    print("Checking for new transactions... on budget", budget.name)
+    mode = "CREDIT CARD ONLY" if only_credit_card else "ALL EXCEPT CREDIT CARD"
+    print(f"Checking for new transactions... on budget {budget.name} [{mode}]")
 
-    create_transactions = _process_transactions(budget, main_budget)
+    create_transactions = _process_transactions(budget, main_budget, only_credit_card)
 
     for transaction in create_transactions:
         YNABClient().create_transaction(main_budget.id, transaction.to_dict())
