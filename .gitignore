@@ -3,7 +3,7 @@
 .vscode
 .idea
 .venv
-.files/
+backup/
 **/**/.DS_Store
 
 file_import/baneco.csv

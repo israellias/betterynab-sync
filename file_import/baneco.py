@@ -34,7 +34,8 @@ with open(filename, "r") as input_file, open(
         mes = months_dict[fecha[1]]
         fecha_ynab = fecha[0] + "/" + mes + "/" + fecha[2]
 
-        memo = row["Nota"]
+        # Use Nota column if available, otherwise use Transaccion column
+        memo = row["Nota"] if row["Nota"].strip() else row["Transaccion"]
 
         monto = float(row["Monto"].replace(",", "."))
 
