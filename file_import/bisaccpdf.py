@@ -52,9 +52,9 @@ def extract_transactions_from_pdf(pdf_path):
             if not line.strip():
                 continue
 
-            # Stop if we hit pagination or footer
+            # Skip pagination and section headers (but don't stop parsing)
             if "Página" in line or "PAGA EN CUOTAS" in line or "Total Puntos" in line:
-                break
+                continue
 
             # Look for lines starting with a date
             date_match = re.match(date_pattern, line.strip())
