@@ -8,3 +8,4 @@ ynab
 inquirer
 openai
 PyPDF2
+playwright

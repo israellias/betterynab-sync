@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://purl.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.betterynab.sync-baneco</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/israellias/workspace/betterynab/betterynab-sync</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/claude</string>
+        <string>-p</string>
+        <string>/sync-baneco --auto-accept</string>
+        <string>--allowedTools</string>
+        <string>Bash(.venv/bin/python:*),Read,Write</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>11</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>/tmp/sync-baneco.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/sync-baneco.err</string>
+</dict>
+</plist>

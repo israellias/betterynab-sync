@@ -80,3 +80,18 @@ class YNABClient:
             raise Exception(data["error"]["detail"])
         else:
             print(f"Created transaction {data['data']['transaction']['id']}")
+
+    def import_transactions(self, budget_id, transactions):
+        """Bulk create transactions with import_id dedup."""
+        url = f"{self.API_URL}/budgets/{budget_id}/transactions"
+        response = requests.post(
+            url,
+            headers=self.headers,
+            json={"transactions": transactions},
+        )
+        data = response.json()
+
+        if response.status_code not in (200, 201):
+            raise Exception(data["error"]["detail"])
+
+        return data["data"]

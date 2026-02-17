@@ -25,6 +25,28 @@ python main.py --since-date YYYY-MM-DD
 python main.py --since-date YYYY-MM-DD --credit-card
 ```
 
+### Baneco full pipeline
+```bash
+# Export from bank + convert + bulk import to YNAB (auto since-date)
+python -m baneco
+
+# Override start date
+python -m baneco --since-date YYYY-MM-DD
+
+# Export only (no YNAB upload)
+python -m baneco --export-only
+
+# Dry run: export + convert, save to baneco_transactions.json (no YNAB upload)
+python -m baneco --dry-run
+
+# Reset browser state
+python -m baneco --reset
+```
+
+Configuration in `baneco_config.json` (gitignored, see `baneco_config.example.json`).
+Payee/category rules in `baneco_rules.md` (human-editable markdown tables).
+Uses YNAB bulk import with `import_id` dedup — safe to re-run.
+
 ### File Import Scripts
 These standalone scripts convert bank/exchange statements to YNAB CSV format. All output to `ynab.csv`:
 
@@ -46,6 +68,11 @@ python file_import/baneco.py <csv_file>
 
 ## Environment Setup
 
+```bash
+pip install -r requirements.txt
+python -m playwright install chromium  # one-time: downloads Chromium for Baneco export
+```
+
 Required environment variables in `.env`:
 - `YNAB_TOKEN` - YNAB API token
 - `BOB_BUDGET_ACCOUNT` - Account ID in USD Budget for BOB transactions
@@ -55,6 +82,12 @@ Required environment variables in `.env`:
 
 ### Directory Structure
 
+- `baneco/` - Baneco bank pipeline (export → convert → YNAB import)
+  - `config.py` - `BanecoConfig` — loads baneco_config.json
+  - `exporter.py` - `BanecoExporter` — Playwright login + CSV download
+  - `converter.py` - `BanecoConverter` — Baneco CSV → YNAB transactions
+  - `importer.py` - `YNABImporter` — bulk upload via YNAB API
+  - `pipeline.py` - `BanecoPipeline` — orchestrates the 4 steps
 - `models/` - Data models (Budget, Transaction, Category)
 - `services/` - Business logic and API integration
   - `_ynab_connection/` - YNAB API client and transaction interface
@@ -101,3 +134,4 @@ Import workflow:
 1. Extract PDF: `python file_import/bisaccpdf.py statement.pdf`
 2. Import `ynab.csv` to BISA CC account in BOB Budget
 3. Sync to USD Budget: `python main.py --since-date YYYY-MM-DD --credit-card`
+

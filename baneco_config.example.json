@@ -1,0 +1,7 @@
+{
+  "baneco_account": "your-account-number",
+  "baneco_username": "your_username",
+  "baneco_password": "your_password",
+  "ynab_budget_name": "BOB Budget",
+  "ynab_account_id": "<account-id-in-bob-budget>"
+}

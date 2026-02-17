@@ -34,3 +34,12 @@ tasks/plan_data.json
 # Generated CSV exports
 ynab.csv
 plan.csv
+
+# Baneco config (contains credentials)
+baneco_config.json
+
+# Baneco pipeline artifacts
+baneco_transactions.json
+
+# Playwright persistent browser state
+.baneco_browser_data/
