@@ -1,25 +1,25 @@
 import json
 import os
 
-from baneco.config import BanecoConfig
-from baneco.converter import BanecoConverter
-from baneco.exporter import BanecoExporter
+from binance.config import BinanceConfig
+from binance.converter import BinanceConverter
+from binance.exporter import BinanceExporter
 from services.ynab_importer import YNABImporter
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 TRANSACTIONS_PATH = os.path.join(MODULE_DIR, "transactions.json")
 
 
-class BanecoPipeline:
-    def __init__(self, config: BanecoConfig):
+class BinancePipeline:
+    def __init__(self, config: BinanceConfig):
         self.config = config
-        self.exporter = BanecoExporter(config)
-        self.converter = BanecoConverter()
+        self.exporter = BinanceExporter()
+        self.converter = BinanceConverter()
         self.importer = YNABImporter(config.ynab_budget_name, config.ynab_account_id)
 
     def run(self, since_date: str = None, export_only: bool = False, dry_run: bool = False):
-        """Execute the full Baneco → YNAB pipeline."""
-        # Step 1: Determine since_date (before export so we can set the date range)
+        """Execute the full Binance P2P -> YNAB pipeline."""
+        # Step 1: Determine since_date
         if not export_only:
             if not since_date:
                 since_date = self.importer.get_last_transaction_date()
@@ -30,19 +30,19 @@ class BanecoPipeline:
             else:
                 print(f"Using override since-date: {since_date}", flush=True)
 
-        # Step 2: Export CSV from Baneco (with date range when available)
-        csv_path = self.exporter.export(since_date=since_date)
+        # Step 2: Export JSON from Binance via Playwright
+        json_path = self.exporter.export(since_date=since_date)
 
         if export_only:
             return
 
-        # Step 3: Convert CSV to YNAB transactions
+        # Step 3: Convert JSON to YNAB transactions
         transactions = self.converter.convert(
-            csv_path,
+            json_path,
             account_id=self.config.ynab_account_id,
-            since_date=since_date,
+            transfer_payee_id=self.config.transfer_payee_id,
         )
-        print(f"Converted {len(transactions)} transactions from CSV.", flush=True)
+        print(f"Converted {len(transactions)} transactions.", flush=True)
 
         if dry_run:
             with open(TRANSACTIONS_PATH, "w") as f:

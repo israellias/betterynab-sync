@@ -7,13 +7,11 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CONFIG_PATH = os.path.join(MODULE_DIR, "config.json")
 
 
-class BanecoConfig:
+class BinanceConfig:
     REQUIRED_KEYS = [
-        "baneco_account",
-        "baneco_username",
-        "baneco_password",
         "ynab_budget_name",
         "ynab_account_id",
+        "transfer_payee_id",
     ]
 
     def __init__(self, path=None):
@@ -24,7 +22,7 @@ class BanecoConfig:
         if not os.path.exists(self._path):
             print(f"Config not found: {self._path}", flush=True)
             print(
-                "Copy baneco/config.example.json and fill in your values.", flush=True
+                "Copy binance/config.example.json and fill in your values.", flush=True
             )
             sys.exit(1)
 
@@ -39,21 +37,13 @@ class BanecoConfig:
         return data
 
     @property
-    def baneco_account(self) -> str:
-        return self._data["baneco_account"]
-
-    @property
-    def baneco_username(self) -> str:
-        return self._data["baneco_username"]
-
-    @property
-    def baneco_password(self) -> str:
-        return self._data["baneco_password"]
-
-    @property
     def ynab_budget_name(self) -> str:
         return self._data["ynab_budget_name"]
 
     @property
     def ynab_account_id(self) -> str:
         return self._data["ynab_account_id"]
+
+    @property
+    def transfer_payee_id(self) -> str:
+        return self._data["transfer_payee_id"]

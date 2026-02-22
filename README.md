@@ -49,7 +49,7 @@ python -m playwright install chromium   # one-time: downloads browser for Baneco
 
 **Baneco credentials** in `baneco_config.json` (copy `baneco_config.example.json` to get started). Each teammate can have their own config since this file is gitignored.
 
-**Baneco transaction rules** in `baneco_rules.md`. This markdown file contains payee patterns, category mappings, and AI guidance used by the `/sync-baneco` skill to categorize transactions. Edit the tables directly to add or change rules.
+**Baneco transaction rules** in `baneco/rules.md`. This markdown file contains payee patterns, category mappings, and AI guidance used by the `/sync-baneco` skill to categorize transactions. Edit the tables directly to add or change rules.
 
 ## How to use
 
@@ -75,7 +75,7 @@ Full pipeline: exports transactions from benet.baneco.com.bo via Playwright, con
 python -m baneco                          # Full pipeline (auto-detects last sync date)
 python -m baneco --since-date 2026-02-01  # Override start date
 python -m baneco --export-only            # Just download CSV, no YNAB upload
-python -m baneco --dry-run                # Export + convert, save to baneco_transactions.json
+python -m baneco --dry-run                # Export + convert, save to baneco/transactions.json
 python -m baneco --reset                  # Clear browser state and re-login
 ```
 
@@ -94,7 +94,7 @@ The `/sync-baneco` skill runs the full Baneco pipeline with AI-powered payee and
 /sync-baneco --since-date 2026-02-01
 ```
 
-It exports from the bank, applies deterministic rules from `baneco_rules.md`, uses AI judgment for unmatched transactions, shows a review table, and imports to YNAB on approval.
+It exports from the bank, applies deterministic rules from `baneco/rules.md`, uses AI judgment for unmatched transactions, shows a review table, and imports to YNAB on approval.
 
 ### File import converters
 

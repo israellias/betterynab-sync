@@ -36,10 +36,26 @@ ynab.csv
 plan.csv
 
 # Baneco config (contains credentials)
-baneco_config.json
+baneco/config.json
 
 # Baneco pipeline artifacts
-baneco_transactions.json
+baneco/transactions.json
+
+# BISA config
+bisa/config.json
+
+# BISA pipeline artifacts
+bisa/transactions.json
+bisa/export.csv
+
+# Binance config
+binance/config.json
+
+# Binance pipeline artifacts
+binance/transactions.json
+binance/export.json
 
 # Playwright persistent browser state
 .baneco_browser_data/
+.bisa_browser_data/
+.binance_browser_data/

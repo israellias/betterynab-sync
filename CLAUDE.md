@@ -36,16 +36,62 @@ python -m baneco --since-date YYYY-MM-DD
 # Export only (no YNAB upload)
 python -m baneco --export-only
 
-# Dry run: export + convert, save to baneco_transactions.json (no YNAB upload)
+# Dry run: export + convert, save to baneco/transactions.json (no YNAB upload)
 python -m baneco --dry-run
 
 # Reset browser state
 python -m baneco --reset
 ```
 
-Configuration in `baneco_config.json` (gitignored, see `baneco_config.example.json`).
-Payee/category rules in `baneco_rules.md` (human-editable markdown tables).
+Configuration in `baneco/config.json` (gitignored, see `baneco/config.example.json`).
+Payee/category rules in `baneco/rules.md` (human-editable markdown tables).
 Uses YNAB bulk import with `import_id` dedup — safe to re-run.
+
+### BISA debit pipeline
+```bash
+# Export from BISA web banking + convert + bulk import to YNAB (auto since-date)
+python -m bisa
+
+# Override start date
+python -m bisa --since-date YYYY-MM-DD
+
+# Export only (just download CSV, no conversion or upload)
+python -m bisa --export-only
+
+# Dry run: export + convert, save to bisa/transactions.json (no YNAB upload)
+python -m bisa --dry-run
+
+# Reset browser state
+python -m bisa --reset
+```
+
+Configuration in `bisa/config.json` (gitignored, see `bisa/config.example.json`).
+Payee/category rules in `bisa/rules.md` (human-editable markdown tables).
+Uses Playwright with persistent browser context — BISA login is manual (2FA).
+Uses YNAB bulk import with `import_id` dedup (`BISA:` prefix) — safe to re-run.
+
+### Binance P2P pipeline
+```bash
+# Export SELL USDT→BOB trades + convert + bulk import to YNAB (auto since-date)
+python -m binance
+
+# Override start date
+python -m binance --since-date YYYY-MM-DD
+
+# Export only (just download JSON, no conversion or upload)
+python -m binance --export-only
+
+# Dry run: export + convert, save to binance/transactions.json (no YNAB upload)
+python -m binance --dry-run
+
+# Reset browser state
+python -m binance --reset
+```
+
+Configuration in `binance/config.json` (gitignored, see `binance/config.example.json`).
+Uses Playwright with persistent browser context — Binance login is manual (2FA).
+Intercepts P2P API response instead of scraping HTML.
+Uses YNAB bulk import with `import_id` dedup (`BNC:` prefix) — safe to re-run.
 
 ### File Import Scripts
 These standalone scripts convert bank/exchange statements to YNAB CSV format. All output to `ynab.csv`:
@@ -83,14 +129,24 @@ Required environment variables in `.env`:
 ### Directory Structure
 
 - `baneco/` - Baneco bank pipeline (export → convert → YNAB import)
-  - `config.py` - `BanecoConfig` — loads baneco_config.json
+  - `config.py` - `BanecoConfig` — loads config.json
   - `exporter.py` - `BanecoExporter` — Playwright login + CSV download
   - `converter.py` - `BanecoConverter` — Baneco CSV → YNAB transactions
-  - `importer.py` - `YNABImporter` — bulk upload via YNAB API
   - `pipeline.py` - `BanecoPipeline` — orchestrates the 4 steps
+- `bisa/` - BISA bank pipeline (Playwright export → convert → YNAB import)
+  - `config.py` - `BisaConfig` — loads config.json
+  - `exporter.py` - `BisaExporter` — Playwright login + CSV download
+  - `converter.py` - `BisaConverter` — BISA CSV → YNAB transactions
+  - `pipeline.py` - `BisaPipeline` — orchestrates the 4 steps
+- `binance/` - Binance P2P pipeline (API intercept → convert → YNAB import)
+  - `config.py` - `BinanceConfig` — loads config.json
+  - `exporter.py` - `BinanceExporter` — Playwright + P2P API intercept
+  - `converter.py` - `BinanceConverter` — P2P JSON → YNAB transactions
+  - `pipeline.py` - `BinancePipeline` — orchestrates the 4 steps
 - `models/` - Data models (Budget, Transaction, Category)
 - `services/` - Business logic and API integration
   - `_ynab_connection/` - YNAB API client and transaction interface
+  - `ynab_importer.py` - `YNABImporter` — bulk upload via YNAB API (shared by all pipelines)
   - `budget_provider.py` - Budget and category fetching/validation
   - `transaction_provider.py` - Transaction processing and sync logic
 - `tasks/` - High-level sync operations

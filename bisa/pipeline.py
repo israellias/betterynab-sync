@@ -1,25 +1,25 @@
 import json
 import os
 
-from baneco.config import BanecoConfig
-from baneco.converter import BanecoConverter
-from baneco.exporter import BanecoExporter
+from bisa.config import BisaConfig
+from bisa.converter import BisaConverter
+from bisa.exporter import BisaExporter
 from services.ynab_importer import YNABImporter
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 TRANSACTIONS_PATH = os.path.join(MODULE_DIR, "transactions.json")
 
 
-class BanecoPipeline:
-    def __init__(self, config: BanecoConfig):
+class BisaPipeline:
+    def __init__(self, config: BisaConfig):
         self.config = config
-        self.exporter = BanecoExporter(config)
-        self.converter = BanecoConverter()
+        self.exporter = BisaExporter(config.bisa_account, config.username, config.password)
+        self.converter = BisaConverter()
         self.importer = YNABImporter(config.ynab_budget_name, config.ynab_account_id)
 
     def run(self, since_date: str = None, export_only: bool = False, dry_run: bool = False):
-        """Execute the full Baneco → YNAB pipeline."""
-        # Step 1: Determine since_date (before export so we can set the date range)
+        """Execute the full BISA -> YNAB pipeline."""
+        # Step 1: Determine since_date
         if not export_only:
             if not since_date:
                 since_date = self.importer.get_last_transaction_date()
@@ -30,7 +30,7 @@ class BanecoPipeline:
             else:
                 print(f"Using override since-date: {since_date}", flush=True)
 
-        # Step 2: Export CSV from Baneco (with date range when available)
+        # Step 2: Export CSV from BISA via Playwright
         csv_path = self.exporter.export(since_date=since_date)
 
         if export_only:
@@ -40,9 +40,8 @@ class BanecoPipeline:
         transactions = self.converter.convert(
             csv_path,
             account_id=self.config.ynab_account_id,
-            since_date=since_date,
         )
-        print(f"Converted {len(transactions)} transactions from CSV.", flush=True)
+        print(f"Converted {len(transactions)} transactions.", flush=True)
 
         if dry_run:
             with open(TRANSACTIONS_PATH, "w") as f:

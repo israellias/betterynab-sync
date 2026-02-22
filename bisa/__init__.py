@@ -1,21 +1,19 @@
 import json
 import os
 
-from baneco.config import BanecoConfig
-from baneco.converter import BanecoConverter
-from baneco.exporter import BanecoExporter
-from services.ynab_importer import YNABImporter
-from baneco.pipeline import BanecoPipeline
+from bisa.config import BisaConfig
+from bisa.converter import BisaConverter
+from bisa.exporter import BisaExporter
+from bisa.pipeline import BisaPipeline
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 TRANSACTIONS_PATH = os.path.join(MODULE_DIR, "transactions.json")
 
 __all__ = [
-    "BanecoConfig",
-    "BanecoConverter",
-    "BanecoExporter",
-    "YNABImporter",
-    "BanecoPipeline",
+    "BisaConfig",
+    "BisaConverter",
+    "BisaExporter",
+    "BisaPipeline",
     "load_pending_transactions",
     "import_to_ynab",
     "get_bob_categories",
@@ -23,7 +21,7 @@ __all__ = [
 
 
 def load_pending_transactions() -> list[dict]:
-    """Load transactions from baneco/transactions.json."""
+    """Load transactions from bisa/transactions.json."""
     if not os.path.exists(TRANSACTIONS_PATH):
         raise FileNotFoundError(f"No pending transactions file found at {TRANSACTIONS_PATH}")
     with open(TRANSACTIONS_PATH, "r") as f:
@@ -32,7 +30,8 @@ def load_pending_transactions() -> list[dict]:
 
 def import_to_ynab(transactions: list[dict]) -> dict:
     """Bulk import transactions to YNAB. Returns {imported, duplicates}."""
-    config = BanecoConfig()
+    config = BisaConfig()
+    from services.ynab_importer import YNABImporter
     importer = YNABImporter(config.ynab_budget_name, config.ynab_account_id)
     return importer.import_transactions(transactions)
 

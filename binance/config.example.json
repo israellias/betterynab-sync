@@ -1,0 +1,5 @@
+{
+  "ynab_budget_name": "USD Budget",
+  "ynab_account_id": "<binance-usdt-account-id-in-usd-budget>",
+  "transfer_payee_id": "<transfer-payee-id-for-bob-budget-account>"
+}

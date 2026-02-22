@@ -13,20 +13,20 @@ When the user runs this skill:
 
 1. Run the export + convert pipeline:
    `.venv/bin/python -m baneco --dry-run [--since-date YYYY-MM-DD if provided]`
-   (This opens the browser, exports CSV, converts transactions, saves to baneco_transactions.json)
+   (This opens the browser, exports CSV, converts transactions, saves to baneco/transactions.json)
 
 2. Load the converted transactions:
    `.venv/bin/python -c "import json; from baneco import load_pending_transactions; print(json.dumps(load_pending_transactions()))"`
 
-3. Read `baneco_rules.md` for deterministic rules
+3. Read `baneco/rules.md` for deterministic rules
 
 4. Fetch BOB Budget categories (returns `[{"id": "uuid", "name": "Category Name"}, ...]`):
    `.venv/bin/python -c "import json; from baneco import get_bob_categories; print(json.dumps(get_bob_categories()))"`
 
 5. For each transaction:
-   a. Apply payee+category rules from baneco_rules.md (pattern matching on memo)
+   a. Apply payee+category rules from baneco/rules.md (pattern matching on memo)
    b. Apply category-only rules (keyword matching on memo)
-   c. For unmatched: use AI judgment based on memo text + AI Guidance section in baneco_rules.md
+   c. For unmatched: use AI judgment based on memo text + AI Guidance section in baneco/rules.md
    d. Fuzzy-match the rule's category name against actual YNAB category names (ignore emojis)
    e. Set `category_id` on the transaction using the matched category's `id` (YNAB requires the UUID, not a name)
 
@@ -36,5 +36,5 @@ When the user runs this skill:
    `Date | Amount | Payee | Category | Memo (truncated) | Source (rule/AI)`
    Ask user to approve or adjust
 
-8. Write the final categorized transactions back to `baneco_transactions.json`, then import to YNAB:
+8. Write the final categorized transactions back to `baneco/transactions.json`, then import to YNAB:
    `.venv/bin/python -c "import json, sys; from baneco import import_to_ynab; txns = json.loads(sys.stdin.read()); result = import_to_ynab(txns); print(json.dumps(result))"` (pipe the JSON via stdin)

@@ -7,11 +7,11 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CONFIG_PATH = os.path.join(MODULE_DIR, "config.json")
 
 
-class BanecoConfig:
+class BisaConfig:
     REQUIRED_KEYS = [
-        "baneco_account",
-        "baneco_username",
-        "baneco_password",
+        "bisa_account",
+        "username",
+        "password",
         "ynab_budget_name",
         "ynab_account_id",
     ]
@@ -24,7 +24,7 @@ class BanecoConfig:
         if not os.path.exists(self._path):
             print(f"Config not found: {self._path}", flush=True)
             print(
-                "Copy baneco/config.example.json and fill in your values.", flush=True
+                "Copy bisa/config.example.json and fill in your values.", flush=True
             )
             sys.exit(1)
 
@@ -39,16 +39,16 @@ class BanecoConfig:
         return data
 
     @property
-    def baneco_account(self) -> str:
-        return self._data["baneco_account"]
+    def bisa_account(self) -> str:
+        return self._data["bisa_account"]
 
     @property
-    def baneco_username(self) -> str:
-        return self._data["baneco_username"]
+    def username(self) -> str:
+        return self._data["username"]
 
     @property
-    def baneco_password(self) -> str:
-        return self._data["baneco_password"]
+    def password(self) -> str:
+        return self._data["password"]
 
     @property
     def ynab_budget_name(self) -> str:

@@ -1,0 +1,7 @@
+{
+  "bisa_account": "5656004012",
+  "username": "<bisa-web-banking-username>",
+  "password": "<bisa-web-banking-password>",
+  "ynab_budget_name": "BOB Budget",
+  "ynab_account_id": "<bisa-account-id-in-bob-budget>"
+}
