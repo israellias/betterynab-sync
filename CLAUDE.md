@@ -171,13 +171,14 @@ Required environment variables in `.env`:
 2. Fetches transactions from `since_date` for all budgets via `fill_transactions()`
 3. For each secondary budget, calls `sync_transactions_to_main_budget()`:
    - Filters transactions based on credit card mode flag
-   - Excludes transfers, categories with ⚙️ emoji, and duplicates
+   - Excludes transfers, categories with ⚙️ or 🔗 emoji, and duplicates
    - Converts amounts using exchange rate from most recent transaction
    - Creates transactions in main budget via YNAB API
 
 ### Key Business Rules
 
-- Categories with "⚙️" emoji are ignored during sync
+- Categories with "⚙️" emoji are ignored during sync (infrastructure)
+- Categories with "🔗" emoji are ignored during sync (e.g. Conversion USD — already tracked in main budget)
 - Budget names are hardcoded: "USD Budget", "BOB Budget", "ARS Budget"
 - BISA CC account (`2096c0e6-e608-4373-8346-4414ee53664c`) can be synced separately
 - Exchange rates stored in transaction memos as `[TC:rate]`

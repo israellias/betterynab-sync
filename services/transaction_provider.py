@@ -43,6 +43,7 @@ def _process_transactions(
             for subtransaction in transaction.subtransactions:
                 if (
                     "⚙️" in subtransaction.category_name
+                    or "🔗" in subtransaction.category_name
                     or "Transfer :" in (subtransaction.payee_name or "")
                     or subtransaction in main_budget_transactions
                 ):  # calls the __eq__ method for CreateTransactionInterface
@@ -60,6 +61,7 @@ def _process_transactions(
         else:
             if (
                 "⚙️" in transaction.category_name
+                or "🔗" in transaction.category_name
                 or "Transfer :" in (transaction.payee_name or "")
                 or transaction in main_budget_transactions
             ):  # calls the __eq__ method for CreateTransactionInterface
