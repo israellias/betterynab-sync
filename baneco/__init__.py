@@ -10,6 +10,8 @@ from baneco.pipeline import BanecoPipeline
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 TRANSACTIONS_PATH = os.path.join(MODULE_DIR, "transactions.json")
 
+EXPORT_PATH = os.path.join(MODULE_DIR, "export.csv")
+
 __all__ = [
     "BanecoConfig",
     "BanecoConverter",
@@ -19,6 +21,8 @@ __all__ = [
     "load_pending_transactions",
     "import_to_ynab",
     "get_bob_categories",
+    "get_last_balance",
+    "get_ynab_balance",
 ]
 
 
@@ -37,6 +41,24 @@ def import_to_ynab(transactions: list[dict]) -> dict:
     return importer.import_transactions(transactions)
 
 
+def get_last_balance() -> float:
+    """Read the last 'Balance Despues' value from baneco/export.csv."""
+    import csv
+
+    if not os.path.exists(EXPORT_PATH):
+        raise FileNotFoundError(f"No export file found at {EXPORT_PATH}")
+
+    last_balance = None
+    with open(EXPORT_PATH, "r") as f:
+        for row in csv.DictReader(f):
+            val = row.get("Balance Despues", "").replace(",", ".")
+            if val:
+                last_balance = float(val)
+    if last_balance is None:
+        raise ValueError("No balance found in export CSV.")
+    return last_balance
+
+
 def get_bob_categories() -> list[dict]:
     """Fetch active categories from BOB Budget via YNAB API.
 
@@ -53,3 +75,16 @@ def get_bob_categories() -> list[dict]:
         raise ValueError("BOB Budget not found in YNAB.")
     categories = client.get_categories(bob.id)
     return [{"id": c.id, "name": c.name} for c in categories if not c.hidden and not c.deleted]
+
+
+def get_ynab_balance() -> dict:
+    """Get YNAB balance for this module's account.
+
+    Returns dict with balance, cleared_balance, uncleared_balance (milliunit × 1000).
+    """
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    config = BanecoConfig()
+    importer = YNABImporter(config.ynab_budget_name, config.ynab_account_id)
+    return importer.get_account_balance()

@@ -9,6 +9,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR = os.path.dirname(MODULE_DIR)
 BROWSER_DATA_DIR = os.path.join(SCRIPT_DIR, ".binance_browser_data")
 EXPORT_PATH = os.path.join(MODULE_DIR, "export.json")
+BALANCE_PATH = os.path.join(MODULE_DIR, "balance.json")
 
 LOGIN_URL = "https://www.binance.com/en/my/dashboard"
 P2P_ORDER_URL = "https://www.binance.com/en/my/orders/p2p"
@@ -34,6 +35,9 @@ class BinanceExporter:
             if not self._ensure_logged_in(page):
                 context.close()
                 sys.exit(1)
+
+            # Step 1b: Capture USDT balance from dashboard
+            self._capture_usdt_balance(page)
 
             print("Logged in. Capturing P2P order history...", flush=True)
 
@@ -143,6 +147,47 @@ class BinanceExporter:
         from datetime import datetime
         ts = order.get("createTime", 0)
         return datetime.fromtimestamp(ts / 1000).strftime("%Y-%m-%d")
+
+    def _capture_usdt_balance(self, page):
+        """Capture USDT funding balance from the wallet overview page.
+
+        Tries API interception first (broad pattern), then falls back to DOM scraping.
+        """
+        captured_balance = []
+
+        def handle_asset_response(response):
+            if "/asset-service/wallet/asset" not in response.url:
+                return
+            try:
+                body = response.json()
+                data = body.get("data")
+                if not isinstance(data, list):
+                    return
+                for item in data:
+                    if isinstance(item, dict) and item.get("asset") == "USDT":
+                        val = item.get("amount")
+                        if val:
+                            captured_balance.append(float(val))
+                            return
+            except Exception:
+                pass
+
+        page.on("response", handle_asset_response)
+
+        # Navigate to wallet overview to trigger asset API call
+        page.goto("https://www.binance.com/en/my/wallet/account/overview")
+        page.wait_for_load_state("domcontentloaded")
+        page.wait_for_timeout(8000)
+
+        page.remove_listener("response", handle_asset_response)
+
+        if captured_balance:
+            balance = captured_balance[0]
+            with open(BALANCE_PATH, "w") as f:
+                json.dump({"usdt_balance": balance}, f)
+            print(f"USDT balance: {balance}", flush=True)
+        else:
+            print("Could not capture USDT balance.", flush=True)
 
     @staticmethod
     def _oldest_date(orders: list) -> str | None:

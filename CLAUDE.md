@@ -112,6 +112,17 @@ python file_import/mp.py <json_file>
 python file_import/baneco.py <csv_file>
 ```
 
+### Weekly reconciliation
+```bash
+# Run /reconcile skill in Claude Code — syncs all 3 pipelines, then compares
+# bank/exchange balances against YNAB account balances
+/reconcile
+```
+
+Runs Baneco + BISA (with AI categorization) + Binance pipelines, then extracts
+real bank balances from exported CSVs/JSON and compares them against YNAB.
+Prints a reconciliation summary with discrepancy analysis. Never makes changes automatically.
+
 ## Environment Setup
 
 ```bash

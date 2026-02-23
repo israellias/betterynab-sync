@@ -81,6 +81,13 @@ class YNABClient:
         else:
             print(f"Created transaction {data['data']['transaction']['id']}")
 
+    def get_accounts(self, budget_id):
+        """Get a list of accounts for a budget."""
+        url = f"{self.API_URL}/budgets/{budget_id}/accounts"
+        response = requests.get(url, headers=self.headers)
+        data = response.json()
+        return data["data"]["accounts"]
+
     def import_transactions(self, budget_id, transactions):
         """Bulk create transactions with import_id dedup."""
         url = f"{self.API_URL}/budgets/{budget_id}/transactions"

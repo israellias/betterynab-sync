@@ -8,9 +8,10 @@ from playwright.sync_api import sync_playwright
 from baneco.config import BanecoConfig
 
 
-SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = os.path.dirname(MODULE_DIR)
 BROWSER_DATA_DIR = os.path.join(SCRIPT_DIR, ".baneco_browser_data")
-DOWNLOAD_DIR = os.path.join(SCRIPT_DIR, "file_import")
+EXPORT_PATH = os.path.join(MODULE_DIR, "export.csv")
 CODE_FILE = "/tmp/baneco_2fa_code"
 
 
@@ -227,7 +228,5 @@ class BanecoExporter:
             csv_opt.first.click()
 
         download = download_info.value
-        filename = download.suggested_filename or f"baneco_{account}.csv"
-        save_path = os.path.join(DOWNLOAD_DIR, filename)
-        download.save_as(save_path)
-        return save_path
+        download.save_as(EXPORT_PATH)
+        return EXPORT_PATH

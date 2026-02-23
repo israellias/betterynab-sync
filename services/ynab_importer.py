@@ -36,6 +36,27 @@ class YNABImporter:
 
         return max(t.date for t in account_txns)
 
+    def get_account_balance(self) -> dict:
+        """Get balance for this importer's account.
+
+        Returns dict with cleared_balance, uncleared_balance, balance
+        (all in milliunit × 1000 format).
+        """
+        accounts = self._client.get_accounts(self.budget_id)
+        account = next(
+            (a for a in accounts if a["id"] == self._account_id),
+            None,
+        )
+        if not account:
+            raise ValueError(
+                f'Account "{self._account_id}" not found in budget "{self._budget_name}".'
+            )
+        return {
+            "cleared_balance": account["cleared_balance"],
+            "uncleared_balance": account["uncleared_balance"],
+            "balance": account["balance"],
+        }
+
     def import_transactions(self, transactions: list) -> dict:
         """Bulk import transactions to YNAB. Returns import summary."""
         if not transactions:

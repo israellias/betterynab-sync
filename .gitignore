@@ -40,6 +40,7 @@ baneco/config.json
 
 # Baneco pipeline artifacts
 baneco/transactions.json
+baneco/export.csv
 
 # BISA config
 bisa/config.json
@@ -54,6 +55,7 @@ binance/config.json
 # Binance pipeline artifacts
 binance/transactions.json
 binance/export.json
+binance/balance.json
 
 # Playwright persistent browser state
 .baneco_browser_data/
