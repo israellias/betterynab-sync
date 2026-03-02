@@ -81,7 +81,7 @@ Print to the user:
 
 Save `{rate}` for Phase 4.
 
-## Phase 3 — Run the sync
+## Phase 3 — Run the regular sync
 
 Run main.py with the resolved since-date:
 
@@ -91,6 +91,47 @@ Run main.py with the resolved since-date:
 
 Capture and show the output to the user. Each line like
 `Created transaction {id}` means a BOB transaction was synced to USD.
+
+## Phase 3b — Run the credit card sync
+
+BISA CC transactions in BOB Budget also need to be synced to USD Budget.
+The since-date for this sync comes from the last **reconciled** transaction
+in the BISA CC account within **BOB Budget** (not USD Budget).
+
+The TC seed from Phase 2 already covers this — both regular and CC syncs
+use the same `BOB_BUDGET_ACCOUNT` for TC rate lookup.
+
+First, resolve the CC since-date:
+
+```bash
+.venv/bin/python -c "
+from dotenv import load_dotenv; load_dotenv()
+import json
+from services._ynab_connection import YNABClient
+client = YNABClient()
+budgets = client.get_budgets()
+bob = next(b for b in budgets if b.name == 'BOB Budget')
+txns = client.get_transactions(bob.id)
+bisa_cc = '2096c0e6-e608-4373-8346-4414ee53664c'
+reconciled = [t for t in txns if t.account_id == bisa_cc and t.cleared == 'reconciled']
+reconciled.sort(key=lambda t: t.date, reverse=True)
+latest = reconciled[0] if reconciled else None
+print(json.dumps({'date': latest.date if latest else None}))
+"
+```
+
+Save the `date` as `{cc_since_date}`. Print to the user:
+> CC since-date resolved: **{cc_since_date}** (from last reconciled BISA CC transaction in BOB Budget)
+
+If `date` is null, skip the credit card sync and note it to the user.
+
+Then run the credit card sync:
+
+```bash
+.venv/bin/python main.py --credit-card --since-date {cc_since_date}
+```
+
+Capture and show the output to the user.
 
 ## Phase 4 — Balance comparison
 
