@@ -27,14 +27,17 @@ class YNABImporter:
         return self._budget_id
 
     def get_last_transaction_date(self) -> str | None:
-        """Find the most recent transaction date for this account."""
+        """Find the most recent reconciled transaction date for this account."""
         transactions = self._client.get_transactions(self.budget_id)
-        account_txns = [t for t in transactions if t.account_id == self._account_id]
+        reconciled_txns = [
+            t for t in transactions
+            if t.account_id == self._account_id and t.cleared == "reconciled"
+        ]
 
-        if not account_txns:
+        if not reconciled_txns:
             return None
 
-        return max(t.date for t in account_txns)
+        return max(t.date for t in reconciled_txns)
 
     def get_account_balance(self) -> dict:
         """Get balance for this importer's account.

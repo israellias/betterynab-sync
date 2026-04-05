@@ -3,6 +3,7 @@ name: sync-bisa
 description: Export BISA transactions, categorize with AI, and import to YNAB
 argument-hint: "[--auto-accept] [--since-date YYYY-MM-DD]"
 allowed-tools: Bash(.venv/bin/python:*), Read, Write
+model: sonnet
 ---
 
 # Sync BISA Pipeline

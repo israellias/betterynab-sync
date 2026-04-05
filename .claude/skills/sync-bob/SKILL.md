@@ -3,6 +3,7 @@ name: sync-bob
 description: Sync BOB Budget transactions to USD Budget with exchange rate conversion
 argument-hint: ""
 allowed-tools: Bash(.venv/bin/python:*)
+model: sonnet
 ---
 
 # Sync BOB Budget → USD Budget

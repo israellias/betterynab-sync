@@ -3,6 +3,7 @@ name: reconcile
 description: Sync all bank pipelines and reconcile balances against YNAB
 argument-hint: ""
 allowed-tools: Bash(.venv/bin/python:*), Read, Write, Skill(sync-baneco:*), Skill(sync-bisa:*)
+model: sonnet
 ---
 
 # Weekly Reconciliation

@@ -3,6 +3,7 @@ name: sync-baneco
 description: Export Baneco transactions, categorize with AI, and import to YNAB
 argument-hint: "[--auto-accept] [--since-date YYYY-MM-DD]"
 allowed-tools: Bash(.venv/bin/python:*), Read, Write
+model: sonnet
 ---
 
 # Sync Baneco Pipeline
