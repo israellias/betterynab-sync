@@ -1,32 +1,23 @@
 # betterynab-sync
 
-## Main Goal
+Multi-currency budget synchronization for [YNAB](https://www.ynab.com/). Automates bank transaction imports and syncs across currency budgets so you can track real costs from a single place.
 
-When you get your main income in a single currency and/or you intent to use a single currency to leave money there. But you are spending money in different currencies then you get trouble syncing this expenses in both currencies.
+## The problem
 
-The problem increases its complexity when volatity on exchange rates is present. That leads you to not know how many (in local) money could you expend e.g. the last week of the month.
+You earn in one currency but spend in others. YNAB doesn't natively handle multi-currency budgets, so you end up with separate budgets per currency and no unified view of your spending. Exchange rate volatility makes it worse: you can't tell how much (in your main currency) you actually spent last week.
 
-So the main goal is to handle budgets that occur in different currencies but, at the same time, get their incomes from the same source (This is the main budget)
+This project solves it in two steps:
 
-# Explanation
+1. **Automate bank imports**: each bank/exchange gets a pipeline that exports transactions and bulk-imports them into YNAB with deduplication. Reusable and easy to extend to new banks.
 
-You could use your **main budget** for:
-
-- Assign money for all your categories (even those that has their transactions in other currency).
-
-You could use your **second budgets** for:
-
-- Register money in your local currency and this will create a transaction in your main budget applying the current exchange rate. Which indicates the real cost of everything you're expending.
-
-Finally you could pay attention on a single budget (the main one) and start increasing the Age of Money and see relevant reports on how much you're expending and in what.
+2. **Sync across currencies**: transactions from secondary budgets (e.g. BOB, ARS) get mirrored into a main budget (e.g. USD) with exchange rate conversion. This part currently has hardcoded budget names and account IDs, it works but isn't yet generic.
 
 ## Setup
 
 ### Prerequisites
 
 - Python 3.11+
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (`npm install -g @anthropic-ai/claude-code`)
-- Node.js (required by Claude Code)
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (for AI-powered sync skills)
 
 ### Installation
 
@@ -34,12 +25,10 @@ Finally you could pay attention on a single budget (the main one) and start incr
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m playwright install chromium   # one-time: downloads browser for Baneco export
+python -m playwright install chromium
 ```
 
 ### Configuration
-
-**All configuration** lives in a single `.env` file:
 
 ```bash
 cp .env.example .env
@@ -47,103 +36,105 @@ cp .env.example .env
 
 Fill in your YNAB token, account IDs, and bank credentials for the pipelines you use. See `.env.example` for all available variables grouped by pipeline.
 
-**Transaction rules** (optional, for AI-powered sync only): the `/sync-baneco` and `/sync-bisa` skills use `rules.md` files to categorize transactions. These are auto-created on first run, the skill will ask you for your payee/category mappings and write the file.
+## Part 1: Bank pipelines (reusable)
 
-## How to use
+Each bank integration follows the same 4-step pattern: **export** from the bank, **convert** to YNAB format, optionally **categorize** with AI, and **import** to YNAB.
+
+### Pipeline architecture
+
+```
+bank_module/
+  config.py      # Reads env vars for this bank's credentials + YNAB target
+  exporter.py    # Playwright-based login + transaction download
+  converter.py   # Bank-specific format -> YNAB transaction dicts
+  pipeline.py    # Orchestrates: export -> convert -> import
+  __init__.py    # Public API: load_pending_transactions(), import_to_ynab(), etc.
+  __main__.py    # CLI entry point: python -m <module>
+```
+
+### Shared services
+
+- **`services/ynab_importer.py`**: `YNABImporter(budget_name, account_id)` handles bulk upload to YNAB with `import_id` deduplication (safe to re-run)
+- **`services/_ynab_connection/`**: YNAB API client
+
+### Running a pipeline
+
+All pipelines share the same CLI interface:
+
+```bash
+python -m <module>                          # Full pipeline (auto-detects last sync date)
+python -m <module> --since-date 2026-02-01  # Override start date
+python -m <module> --export-only            # Just download, no YNAB upload
+python -m <module> --dry-run                # Export + convert, save to <module>/transactions.json
+python -m <module> --reset                  # Clear browser state and re-login
+```
+
+### AI-powered categorization
+
+The `/sync-baneco` and `/sync-bisa` Claude Code skills wrap the pipeline with AI-powered payee and category assignment. They use `rules.md` files (auto-created on first run) for deterministic matching, with AI judgment for unmatched transactions.
+
+
+### Current integrations
+
+| Module | Bank | Country | Export method |
+| --- | --- | --- | --- |
+| `baneco/` | Banco Economico | Bolivia | Playwright + CSV download |
+| `bisa/` | Banco BISA | Bolivia | Playwright + CSV download |
+| `binance/` | Binance P2P | Global | Playwright + API intercept |
+
+### Weekly reconciliation
+
+The `/reconcile` skill runs all 3 pipelines, then compares bank balances against YNAB account balances and prints a discrepancy report. It never makes changes automatically.
+
+### Adding a new bank
+
+1. Create a new directory (e.g. `bancosol/`)
+2. Implement the 4 files following the pattern above:
+   - `config.py`: follow the `BanecoConfig` pattern, read env vars with a `BANCOSOL_` prefix
+   - `exporter.py`: Playwright-based export (or any method that produces a file)
+   - `converter.py`: parse the bank's export format into YNAB transaction dicts with `import_id` for dedup
+   - `pipeline.py`: wire together exporter, converter, and `YNABImporter`
+3. Add `__main__.py` for CLI usage and `__init__.py` with public API
+4. Add env vars to `.env.example`
+5. Optionally, add a Claude Code skill in `.claude/skills/sync-<bank>/` for AI categorization
+
+The `import_id` field in each transaction must be unique and deterministic (e.g. `PREFIX:txn_id:date`) so re-runs skip already-imported transactions.
+
+## Part 2: Cross-currency sync (work in progress)
+
+Once transactions are in YNAB, the second step is syncing them from secondary budgets into a main budget with exchange rate conversion. This lets you see all spending in one currency.
 
 ### Daily sync
 
-Run the sync script to pull transactions from secondary budgets into the main budget:
+`main.py` reads transactions from secondary budgets and creates corresponding entries in the main budget, converting amounts using the most recent exchange rate (`[TC:rate]` in memos).
 
 ```bash
 python main.py --since-date YYYY-MM-DD
-```
 
-For BISA credit card late statements only:
-
-```bash
+# Sync only BISA credit card transactions (for late statements)
 python main.py --since-date YYYY-MM-DD --credit-card
 ```
 
-### Baneco pipeline
+### Automated sync
 
-Full pipeline: exports transactions from benet.baneco.com.bo via Playwright, converts them, and bulk imports to YNAB with automatic deduplication.
+The `/sync-bob` Claude Code skill automates the full cycle: resolves the since-date from the last reconciled transaction, seeds the exchange rate, runs the sync, and prints a balance comparison.
 
-```bash
-python -m baneco                          # Full pipeline (auto-detects last sync date)
-python -m baneco --since-date 2026-02-01  # Override start date
-python -m baneco --export-only            # Just download CSV, no YNAB upload
-python -m baneco --dry-run                # Export + convert, save to baneco/transactions.json
-python -m baneco --reset                  # Clear browser state and re-login
-```
+> **Note**: this part currently has hardcoded budget names ("USD Budget", "BOB Budget", "ARS Budget"), a hardcoded BISA CC account ID, and Bolivia-specific logic in `services/budget_provider.py` and `services/transaction_provider.py`. It works for the original setup but isn't yet configurable for other currency pairs. Contributions to make this generic are welcome.
 
-On first run it requires a 2FA code; subsequent runs skip 2FA because the browser state is preserved. When 2FA is required, write the code to:
+### Other utilities
 
-```bash
-echo "123456" > /tmp/baneco_2fa_code
-```
-
-### AI-powered sync (recommended)
-
-The `/sync-baneco` skill runs the full Baneco pipeline with AI-powered payee and category assignment. In Claude Code:
-
-```
-/sync-baneco
-/sync-baneco --since-date 2026-02-01
-```
-
-It exports from the bank, applies deterministic rules from `rules.md`, uses AI judgment for unmatched transactions, shows a review table, and imports to YNAB on approval.
-
-### File import converters
-
-These scripts convert bank/exchange statements into YNAB-compatible CSV (`ynab.csv`):
-
-| Script | Source | Format |
-|---|---|---|
-| `file_import/baneco.py` | Baneco bank statement | CSV |
-| `file_import/bisaccpdf.py` | BISA credit card statement | PDF |
-| `file_import/bisa.py` | BISA debit statement | CSV |
-| `file_import/binance.py` | Binance P2P trades | JSON |
-| `file_import/gananet.py` | Gananet statement | XLSX |
-| `file_import/mp.py` | Mercado Pago transactions | JSON |
-
-```bash
-python file_import/<script> <file>
-```
-
-### Preconditions
-
-1. Your categories (of the main budget) needs to be present in all the other budgets (have the same name)
-1. Transactions of a category that has "⚙️" will be ignored
-1. You must have an **account** in the main budget that have the same name that your secondary budget has. That means, one account per each secondary budget
-
-### Restrictions
-
-Budget names are currently hardcoded:
-
-- **USD Budget** (main budget)
-- **BOB Budget**
-- **ARS Budget**
+- **`file_import/`**: standalone scripts that convert bank statements (CSV, PDF, JSON, XLSX) to YNAB-compatible CSV for manual import
 
 ## Scheduled automation (macOS)
 
-The Baneco sync can run daily via a macOS launchd agent that triggers Claude Code in non-interactive mode.
-
-### Setup
-
-1. Copy the plist to your LaunchAgents directory:
+The Baneco sync can run daily via a macOS launchd agent. See `config/com.betterynab.sync-baneco.plist` for the template.
 
 ```bash
 cp config/com.betterynab.sync-baneco.plist ~/Library/LaunchAgents/
-```
-
-2. Edit the plist to match your paths if needed (working directory, claude binary location).
-
-3. Load the agent:
-
-```bash
 launchctl load ~/Library/LaunchAgents/com.betterynab.sync-baneco.plist
 ```
+
+Requires an active macOS session (Playwright opens a visible browser), Claude Code installed and authenticated, and Node.js in PATH.
 
 ### Managing the agent
 
