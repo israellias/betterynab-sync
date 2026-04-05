@@ -19,7 +19,13 @@ When the user runs this skill:
 2. Load the converted transactions:
    `.venv/bin/python -c "import json; from baneco import load_pending_transactions; print(json.dumps(load_pending_transactions()))"`
 
-3. Read `baneco/rules.md` for deterministic rules
+3. Check if `baneco/rules.md` exists:
+   - **If it exists**: read it for deterministic rules
+   - **If it doesn't exist**: ask the user to provide their transaction categorization rules, explaining the expected structure:
+     - **Payee + Category Rules**: a markdown table with columns `Pattern (in memo) | Payee | Category` for when a memo pattern should set both payee and category
+     - **Category-Only Rules**: a markdown table with columns `Keywords | Category` for keyword-based category matching where AI determines the payee
+     - **AI Guidance**: free-form notes to help categorize unmatched transactions (e.g. "POS transactions are usually stores", "TRASP.CTAS.TERCEROS are bank transfers")
+     Write the user's input to `baneco/rules.md` with proper markdown formatting, then continue
 
 4. Fetch BOB Budget categories (returns `[{"id": "uuid", "name": "Category Name"}, ...]`):
    `.venv/bin/python -c "import json; from baneco import get_bob_categories; print(json.dumps(get_bob_categories()))"`

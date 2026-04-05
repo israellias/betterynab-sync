@@ -43,9 +43,9 @@ python -m baneco --dry-run
 python -m baneco --reset
 ```
 
-Configuration in `baneco/config.json` (gitignored, see `baneco/config.example.json`).
-Payee/category rules in `baneco/rules.md` (human-editable markdown tables).
-Uses YNAB bulk import with `import_id` dedup — safe to re-run.
+Configuration via environment variables in `.env` (see `.env.example`).
+Payee/category rules in `baneco/rules.md` (gitignored, auto-created by skill on first run).
+Uses YNAB bulk import with `import_id` dedup, safe to re-run.
 
 ### BISA debit pipeline
 ```bash
@@ -65,8 +65,8 @@ python -m bisa --dry-run
 python -m bisa --reset
 ```
 
-Configuration in `bisa/config.json` (gitignored, see `bisa/config.example.json`).
-Payee/category rules in `bisa/rules.md` (human-editable markdown tables).
+Configuration via environment variables in `.env` (see `.env.example`).
+Payee/category rules in `bisa/rules.md` (gitignored, auto-created by skill on first run).
 Uses Playwright with persistent browser context — BISA login is manual (2FA).
 Uses YNAB bulk import with `import_id` dedup (`BISA:` prefix) — safe to re-run.
 
@@ -88,7 +88,7 @@ python -m binance --dry-run
 python -m binance --reset
 ```
 
-Configuration in `binance/config.json` (gitignored, see `binance/config.example.json`).
+Configuration via environment variables in `.env` (see `.env.example`).
 Uses Playwright with persistent browser context — Binance login is manual (2FA).
 Intercepts P2P API response instead of scraping HTML.
 Uses YNAB bulk import with `import_id` dedup (`BNC:` prefix) — safe to re-run.
@@ -130,27 +130,24 @@ pip install -r requirements.txt
 python -m playwright install chromium  # one-time: downloads Chromium for Baneco export
 ```
 
-Required environment variables in `.env`:
-- `YNAB_TOKEN` - YNAB API token
-- `BOB_BUDGET_ACCOUNT` - Account ID in USD Budget for BOB transactions
-- `ARS_BUDGET_ACCOUNT` - Account ID in USD Budget for ARS transactions
+All configuration lives in `.env` (copy `.env.example` to get started). Includes YNAB token, account IDs, and per-pipeline bank credentials.
 
 ## Architecture
 
 ### Directory Structure
 
 - `baneco/` - Baneco bank pipeline (export → convert → YNAB import)
-  - `config.py` - `BanecoConfig` — loads config.json
+  - `config.py` - `BanecoConfig` — reads env vars
   - `exporter.py` - `BanecoExporter` — Playwright login + CSV download
   - `converter.py` - `BanecoConverter` — Baneco CSV → YNAB transactions
   - `pipeline.py` - `BanecoPipeline` — orchestrates the 4 steps
 - `bisa/` - BISA bank pipeline (Playwright export → convert → YNAB import)
-  - `config.py` - `BisaConfig` — loads config.json
+  - `config.py` - `BisaConfig` — reads env vars
   - `exporter.py` - `BisaExporter` — Playwright login + CSV download
   - `converter.py` - `BisaConverter` — BISA CSV → YNAB transactions
   - `pipeline.py` - `BisaPipeline` — orchestrates the 4 steps
 - `binance/` - Binance P2P pipeline (API intercept → convert → YNAB import)
-  - `config.py` - `BinanceConfig` — loads config.json
+  - `config.py` - `BinanceConfig` — reads env vars
   - `exporter.py` - `BinanceExporter` — Playwright + P2P API intercept
   - `converter.py` - `BinanceConverter` — P2P JSON → YNAB transactions
   - `pipeline.py` - `BinancePipeline` — orchestrates the 4 steps

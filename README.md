@@ -39,17 +39,15 @@ python -m playwright install chromium   # one-time: downloads browser for Baneco
 
 ### Configuration
 
-**Environment variables** in `.env`:
+**All configuration** lives in a single `.env` file:
 
-| Variable | Description |
-|---|---|
-| `YNAB_TOKEN` | YNAB API token |
-| `BOB_BUDGET_ACCOUNT` | Account ID in USD Budget for BOB transactions |
-| `ARS_BUDGET_ACCOUNT` | Account ID in USD Budget for ARS transactions |
+```bash
+cp .env.example .env
+```
 
-**Baneco credentials** in `baneco_config.json` (copy `baneco_config.example.json` to get started). Each teammate can have their own config since this file is gitignored.
+Fill in your YNAB token, account IDs, and bank credentials for the pipelines you use. See `.env.example` for all available variables grouped by pipeline.
 
-**Baneco transaction rules** in `baneco/rules.md`. This markdown file contains payee patterns, category mappings, and AI guidance used by the `/sync-baneco` skill to categorize transactions. Edit the tables directly to add or change rules.
+**Transaction rules** (optional, for AI-powered sync only): the `/sync-baneco` and `/sync-bisa` skills use `rules.md` files to categorize transactions. These are auto-created on first run, the skill will ask you for your payee/category mappings and write the file.
 
 ## How to use
 
@@ -94,7 +92,7 @@ The `/sync-baneco` skill runs the full Baneco pipeline with AI-powered payee and
 /sync-baneco --since-date 2026-02-01
 ```
 
-It exports from the bank, applies deterministic rules from `baneco/rules.md`, uses AI judgment for unmatched transactions, shows a review table, and imports to YNAB on approval.
+It exports from the bank, applies deterministic rules from `rules.md`, uses AI judgment for unmatched transactions, shows a review table, and imports to YNAB on approval.
 
 ### File import converters
 

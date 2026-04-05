@@ -1,59 +1,39 @@
-import json
 import os
 import sys
 
 
-MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_CONFIG_PATH = os.path.join(MODULE_DIR, "config.json")
-
-
 class BanecoConfig:
-    REQUIRED_KEYS = [
-        "baneco_account",
-        "baneco_username",
-        "baneco_password",
-        "ynab_budget_name",
-        "ynab_account_id",
-    ]
+    REQUIRED_VARS = {
+        "BANECO_ACCOUNT": "baneco_account",
+        "BANECO_USERNAME": "baneco_username",
+        "BANECO_PASSWORD": "baneco_password",
+        "BANECO_YNAB_BUDGET": "ynab_budget_name",
+        "BANECO_YNAB_ACCOUNT": "ynab_account_id",
+    }
 
-    def __init__(self, path=None):
-        self._path = path or DEFAULT_CONFIG_PATH
-        self._data = self._load()
-
-    def _load(self):
-        if not os.path.exists(self._path):
-            print(f"Config not found: {self._path}", flush=True)
-            print(
-                "Copy baneco/config.example.json and fill in your values.", flush=True
-            )
-            sys.exit(1)
-
-        with open(self._path) as f:
-            data = json.load(f)
-
-        missing = [k for k in self.REQUIRED_KEYS if k not in data]
+    def __init__(self):
+        missing = [var for var in self.REQUIRED_VARS if not os.environ.get(var)]
         if missing:
-            print(f"Missing config keys: {', '.join(missing)}", flush=True)
+            print(f"Missing environment variables: {', '.join(missing)}", flush=True)
+            print("Copy .env.example to .env and fill in your values.", flush=True)
             sys.exit(1)
-
-        return data
 
     @property
     def baneco_account(self) -> str:
-        return self._data["baneco_account"]
+        return os.environ["BANECO_ACCOUNT"]
 
     @property
     def baneco_username(self) -> str:
-        return self._data["baneco_username"]
+        return os.environ["BANECO_USERNAME"]
 
     @property
     def baneco_password(self) -> str:
-        return self._data["baneco_password"]
+        return os.environ["BANECO_PASSWORD"]
 
     @property
     def ynab_budget_name(self) -> str:
-        return self._data["ynab_budget_name"]
+        return os.environ["BANECO_YNAB_BUDGET"]
 
     @property
     def ynab_account_id(self) -> str:
-        return self._data["ynab_account_id"]
+        return os.environ["BANECO_YNAB_ACCOUNT"]

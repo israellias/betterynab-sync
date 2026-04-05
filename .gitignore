@@ -35,22 +35,19 @@ tasks/plan_data.json
 ynab.csv
 plan.csv
 
-# Baneco config (contains credentials)
-baneco/config.json
+# Baneco rules (personal payee/category mappings)
+baneco/rules.md
 
 # Baneco pipeline artifacts
 baneco/transactions.json
 baneco/export.csv
 
-# BISA config
-bisa/config.json
+# BISA rules (personal payee/category mappings)
+bisa/rules.md
 
 # BISA pipeline artifacts
 bisa/transactions.json
 bisa/export.csv
-
-# Binance config
-binance/config.json
 
 # Binance pipeline artifacts
 binance/transactions.json
