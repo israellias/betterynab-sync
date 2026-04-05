@@ -1,7 +1,6 @@
 import os
 import shutil
 import sys
-import time
 
 from playwright.sync_api import sync_playwright
 
@@ -12,7 +11,6 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT_DIR = os.path.dirname(MODULE_DIR)
 BROWSER_DATA_DIR = os.path.join(SCRIPT_DIR, ".baneco_browser_data")
 EXPORT_PATH = os.path.join(MODULE_DIR, "export.csv")
-CODE_FILE = "/tmp/baneco_2fa_code"
 
 
 class BanecoExporter:
@@ -92,26 +90,13 @@ class BanecoExporter:
         return False
 
     def _handle_2fa(self, page) -> bool:
-        if os.path.exists(CODE_FILE):
-            os.remove(CODE_FILE)
-
-        print(f"2FA required. Write code to {CODE_FILE}", flush=True)
-        print(f'  echo "123456" > {CODE_FILE}', flush=True)
-
-        while not os.path.exists(CODE_FILE):
-            time.sleep(1)
-
-        with open(CODE_FILE, "r") as f:
-            code = f.read().strip()
-        os.remove(CODE_FILE)
-
-        print("Submitting 2FA code...", flush=True)
-        page.locator('input[maxlength="6"]').fill(code)
-        page.wait_for_timeout(500)
-        page.click('button:has-text("Continuar")')
-        page.wait_for_timeout(8000)
-        page.wait_for_load_state("networkidle")
-        return "/home" in page.url
+        print("2FA required. Enter the code in the browser.", flush=True)
+        for _ in range(120):
+            page.wait_for_timeout(1000)
+            if "/home" in page.url:
+                return True
+        print("2FA timed out.", flush=True)
+        return False
 
     # Spanish month abbreviations for Baneco date format (DD/Mon/YYYY)
     _MONTHS_ES = {
