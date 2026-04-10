@@ -54,7 +54,19 @@ binance/transactions.json
 binance/export.json
 binance/balance.json
 
+# Banco Sol rules (personal payee/category mappings)
+sol/rules.md
+
+# Banco Sol pipeline artifacts
+sol/transactions.json
+sol/export.pdf
+sol/debug_*.png
+
+# Reference screenshots (development only)
+sol_steps_images/
+
 # Playwright persistent browser state
 .baneco_browser_data/
 .bisa_browser_data/
 .binance_browser_data/
+.sol_browser_data/

@@ -70,6 +70,30 @@ Payee/category rules in `bisa/rules.md` (gitignored, auto-created by skill on fi
 Uses Playwright with persistent browser context — BISA login is manual (2FA).
 Uses YNAB bulk import with `import_id` dedup (`BISA:` prefix) — safe to re-run.
 
+### Banco Sol pipeline
+```bash
+# Export from Banco Sol web banking + parse PDF + bulk import to YNAB (auto since-date)
+python -m sol
+
+# Override start date
+python -m sol --since-date YYYY-MM-DD
+
+# Export only (just download PDF, no conversion or upload)
+python -m sol --export-only
+
+# Dry run: export + convert, save to sol/transactions.json (no YNAB upload)
+python -m sol --dry-run
+
+# Reset browser state
+python -m sol --reset
+```
+
+Configuration via environment variables in `.env` (see `.env.example`).
+Payee/category rules in `sol/rules.md` (gitignored, auto-created by skill on first run).
+Uses Playwright with persistent browser context — Banco Sol login may require 2FA.
+Exports PDF statement (not CSV), parsed with PyPDF2.
+Uses YNAB bulk import with `import_id` dedup (`SOL:` prefix) — safe to re-run.
+
 ### Binance P2P pipeline
 ```bash
 # Export SELL USDT→BOB trades + convert + bulk import to YNAB (auto since-date)
@@ -119,8 +143,8 @@ python file_import/baneco.py <csv_file>
 /reconcile
 ```
 
-Runs Baneco + BISA (with AI categorization) + Binance pipelines, then extracts
-real bank balances from exported CSVs/JSON and compares them against YNAB.
+Runs Baneco + BISA + Banco Sol (with AI categorization) + Binance pipelines, then extracts
+real bank balances from exported CSVs/PDFs/JSON and compares them against YNAB.
 Prints a reconciliation summary with discrepancy analysis. Never makes changes automatically.
 
 ## Environment Setup
@@ -146,6 +170,11 @@ All configuration lives in `.env` (copy `.env.example` to get started). Includes
   - `exporter.py` - `BisaExporter` — Playwright login + CSV download
   - `converter.py` - `BisaConverter` — BISA CSV → YNAB transactions
   - `pipeline.py` - `BisaPipeline` — orchestrates the 4 steps
+- `sol/` - Banco Sol pipeline (Playwright export → PDF parse → YNAB import)
+  - `config.py` - `SolConfig` — reads env vars
+  - `exporter.py` - `SolExporter` — Playwright login + PDF download
+  - `converter.py` - `SolConverter` — Banco Sol PDF → YNAB transactions
+  - `pipeline.py` - `SolPipeline` — orchestrates the 4 steps
 - `binance/` - Binance P2P pipeline (API intercept → convert → YNAB import)
   - `config.py` - `BinanceConfig` — reads env vars
   - `exporter.py` - `BinanceExporter` — Playwright + P2P API intercept
@@ -198,5 +227,4 @@ BISA CC transactions exist in two modes:
 Import workflow:
 1. Extract PDF: `python file_import/bisaccpdf.py statement.pdf`
 2. Import `ynab.csv` to BISA CC account in BOB Budget
-3. Sync to USD Budget: `python main.py --since-date YYYY-MM-DD --credit-card`
-
+3. Sync to USD Budget: `python main.py --since-date YYYY-MM-DD --credit-card` 
