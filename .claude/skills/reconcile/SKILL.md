@@ -2,7 +2,7 @@
 name: reconcile
 description: Sync all bank pipelines and reconcile balances against YNAB
 argument-hint: ""
-allowed-tools: Bash(.venv/bin/python:*), Read, Write, Skill(sync-baneco:*), Skill(sync-bisa:*)
+allowed-tools: Bash(.venv/bin/python:*), Read, Write, Skill(sync-baneco:*), Skill(sync-bisa:*), Skill(sync-sol:*)
 model: sonnet
 ---
 
@@ -14,24 +14,27 @@ When the user runs this skill:
 
 ## Phase 1 — Sync all pipelines
 
-Run all 3 pipelines sequentially. Track the import results (imported/duplicates) for each.
+Run all 4 pipelines sequentially. Track the import results (imported/duplicates) for each.
 
 1. Invoke `/sync-baneco --auto-accept` — note the imported/duplicates counts from the output
 2. Invoke `/sync-bisa --auto-accept` — note the imported/duplicates counts from the output
-3. Run Binance pipeline directly (no AI categorization needed):
+3. Invoke `/sync-sol --auto-accept` — note the imported/duplicates counts from the output
+4. Run Binance pipeline directly (no AI categorization needed):
    `.venv/bin/python -m binance`
    Parse the "Imported X transactions (Y duplicates skipped)" line from output.
 
 ## Phase 2 — Collect balances
 
-4. Get bank/exchange balances from exported data:
+5. Get bank/exchange balances from exported data:
    - Baneco: `.venv/bin/python -c "from baneco import get_last_balance; print(get_last_balance())"`
    - BISA: `.venv/bin/python -c "from bisa import get_last_balance; print(get_last_balance())"`
+   - Banco Sol: `.venv/bin/python -c "from sol import get_last_balance; print(get_last_balance())"`
    - Binance: `.venv/bin/python -c "from binance import get_usdt_balance; print(get_usdt_balance())"`
 
-5. Get YNAB account balances:
+6. Get YNAB account balances:
    - Baneco: `.venv/bin/python -c "import json; from baneco import get_ynab_balance; print(json.dumps(get_ynab_balance()))"`
    - BISA: `.venv/bin/python -c "import json; from bisa import get_ynab_balance; print(json.dumps(get_ynab_balance()))"`
+   - Banco Sol: `.venv/bin/python -c "import json; from sol import get_ynab_balance; print(json.dumps(get_ynab_balance()))"`
    - Binance: `.venv/bin/python -c "import json; from binance import get_ynab_balance; print(json.dumps(get_ynab_balance()))"`
 
    YNAB balances are in milliunit format (× 1000). Divide by 1000.0 to get the human-readable amount.
@@ -44,17 +47,19 @@ Run all 3 pipelines sequentially. Track the import results (imported/duplicates)
 ## Weekly Reconciliation — {today's date}
 
 ### Sync Results
-| Pipeline | Imported | Duplicates |
-|----------|----------|------------|
-| Baneco   | {n}      | {n}        |
-| BISA     | {n}      | {n}        |
-| Binance  | {n}      | {n}        |
+| Pipeline   | Imported | Duplicates |
+|------------|----------|------------|
+| Baneco     | {n}      | {n}        |
+| BISA       | {n}      | {n}        |
+| Banco Sol  | {n}      | {n}        |
+| Binance    | {n}      | {n}        |
 
 ### Balance Comparison (BOB Budget)
-| Account  | Bank Balance | YNAB Balance | Diff    | Status |
-|----------|-------------|--------------|---------|--------|
-| Baneco   | {x} Bs      | {y} Bs       | {diff}  | {ok}   |
-| BISA     | {x} Bs      | {y} Bs       | {diff}  | {ok}   |
+| Account    | Bank Balance | YNAB Balance | Diff    | Status |
+|------------|-------------|--------------|---------|--------|
+| Baneco     | {x} Bs      | {y} Bs       | {diff}  | {ok}   |
+| BISA       | {x} Bs      | {y} Bs       | {diff}  | {ok}   |
+| Banco Sol  | {x} Bs      | {y} Bs       | {diff}  | {ok}   |
 
 ### Balance Comparison (USD Budget)
 | Account  | Exchange      | YNAB Balance | Diff    | Status |
