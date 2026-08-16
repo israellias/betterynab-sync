@@ -70,3 +70,6 @@ sol_steps_images/
 .bisa_browser_data/
 .binance_browser_data/
 .sol_browser_data/
+
+# audit-divergence ledger dumps
+.audit/
